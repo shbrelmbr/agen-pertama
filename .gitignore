@@ -29,3 +29,6 @@ Thumbs.db
 
 # Riwayat CrewAI
 history.json
+
+# File konfigurasi autentikasi
+auth_config.yaml

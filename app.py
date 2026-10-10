@@ -1,13 +1,65 @@
 import io
+import yaml
+from yaml.loader import SafeLoader
 import streamlit as st
+import streamlit_authenticator as stauth
 from crewai.project.crew_loader import load_crew
 from pypdf import PdfReader
 from docx import Document
 from PIL import Image
-from fpdf import FPDF
 
+# Konfigurasi halaman
 st.set_page_config(page_title="AI Agent Saya", page_icon="🤖", layout="wide")
 
+# --- KONFIGURASI AUTENTIKASI ---
+import os
+
+# Deteksi: apakah file auth_config.yaml ada? (lokal)
+# Jika tidak, baca dari Secrets (Streamlit Cloud)
+if os.path.exists("auth_config.yaml"):
+    # Mode lokal: baca dari file
+    with open("auth_config.yaml") as file:
+        config = yaml.load(file, Loader=SafeLoader)
+
+    # Hash password jika masih plain text
+    if config["credentials"]["usernames"]:
+        for user in config["credentials"]["usernames"].values():
+            if not user["password"].startswith("$2b$"):
+                user["password"] = stauth.Hasher.hash(user["password"])
+        with open("auth_config.yaml", "w") as file:
+            yaml.dump(config, file, default_flow_style=False)
+else:
+    # Mode cloud: baca dari Streamlit Secrets
+    config = {
+        "credentials": {
+            "usernames": dict(st.secrets["credentials"]["usernames"])
+        },
+        "cookie": {
+            "expiry_days": st.secrets["cookie"]["expiry_days"],
+            "key": st.secrets["cookie"]["key"],
+            "name": st.secrets["cookie"]["name"],
+        },
+    }
+
+authenticator = stauth.Authenticate(
+    config["credentials"],
+    config["cookie"]["name"],
+    config["cookie"]["key"],
+    config["cookie"]["expiry_days"],
+)
+
+authenticator.login()
+
+if st.session_state.get("authentication_status") is False:
+    st.error("❌ Username/password salah")
+    st.stop()
+elif st.session_state.get("authentication_status") is None:
+    st.warning("⚠️ Silakan masukkan username dan password Anda")
+    st.stop()
+# --- AKHIR KONFIGURASI AUTENTIKASI ---
+
+
+# Judul
 st.title("🤖 AI Agent Saya")
 st.caption("Sistem multi-agent dengan Chief of Staff dan 6 spesialis")
 
@@ -27,7 +79,7 @@ if "selected_idx" not in st.session_state:
 # ============== EKSTRAKSI FILE ==============
 def extract_pdf(file_bytes):
     reader = PdfReader(io.BytesIO(file_bytes))
-    max_pages = min(50, len(reader.pages))  # ← Naikkan dari 10 ke 50
+    max_pages = min(50, len(reader.pages))
     text = "\n\n".join(reader.pages[i].extract_text() or "" for i in range(max_pages))
     if len(reader.pages) > 50:
         text += f"\n\n[... Dokumen asli memiliki {len(reader.pages)} halaman, hanya 50 halaman pertama dianalisis ...]"
@@ -38,8 +90,8 @@ def extract_docx(file_bytes):
     doc = Document(io.BytesIO(file_bytes))
     paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
     text = "\n\n".join(paragraphs)
-    if len(text) > 30000:
-        text = text[:30000] + "\n\n[... Dokumen terlalu panjang, dipotong pada 30.000 karakter ...]"
+    if len(text) > 50000:
+        text = text[:50000] + "\n\n[... Dokumen terlalu panjang, dipotong pada 50.000 karakter ...]"
     return text
 
 
@@ -57,8 +109,13 @@ def extract_image_info(file_bytes, filename):
     except Exception as e:
         return f"[GAMBAR: {filename} — tidak dapat dibaca: {e}]"
 
+
 # ============== SIDEBAR ==============
 with st.sidebar:
+    st.markdown(f"👤 **{st.session_state.get('name', 'Pengguna')}**")
+    authenticator.logout("Logout", "sidebar")
+    st.divider()
+
     st.header("👥 Tim Agen")
     st.markdown("""
     - 🎯 **Chief of Staff** — Manajer
@@ -92,12 +149,14 @@ with st.sidebar:
                     st.rerun()
 
 
+# Load crew
 with st.spinner("Memuat agen..."):
     crew = get_crew()
 
 
 # ============== HALAMAN UTAMA ==============
 if st.session_state.selected_idx is not None:
+    # ---- MODE LIHAT RIWAYAT ----
     idx = st.session_state.selected_idx
     item = st.session_state.history[idx]
 
@@ -125,6 +184,7 @@ if st.session_state.selected_idx is not None:
     )
 
 else:
+    # ---- MODE INPUT BARU ----
     st.subheader("💬 Ajukan Pertanyaan Baru")
 
     topik = st.text_area(
