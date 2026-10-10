@@ -4,3 +4,4 @@ pypdf
 python-docx
 pillow
 streamlit-authenticator
+pyyaml
