@@ -1,3 +1,4 @@
+# v2 - rebuild untuk reportlab
 crewai[google-genai]
 streamlit
 pypdf
