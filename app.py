@@ -58,31 +58,41 @@ def extract_image_info(file_bytes, filename):
         return f"[GAMBAR: {filename} — tidak dapat dibaca: {e}]"
 
 
-def make_pdf(text):
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_margins(15, 15, 15)
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=10)
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
 
+def make_pdf(text):
+    pdf_buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        pdf_buffer,
+        pagesize=A4,
+        leftMargin=15*mm,
+        rightMargin=15*mm,
+        topMargin=15*mm,
+        bottomMargin=15*mm,
+    )
+    styles = getSampleStyleSheet()
+    style = styles["Normal"]
+    style.fontSize = 10
+    style.leading = 14
+    style.wordWrap = 'LTR'  # Memaksa pemenggalan kata yang panjang
+
+    # Bersihkan markdown sederhana
     clean = text.replace("**", "").replace("##", "").replace("#", "").replace("*", "-")
+    # Pastikan kompatibel dengan font standar PDF
     clean = clean.encode("latin-1", "replace").decode("latin-1")
 
+    flowables = []
     for line in clean.split("\n"):
-        # Pecah baris panjang di batas kata
-        while len(line) > 80:
-            cut = line.rfind(" ", 0, 80)
-            if cut < 20:
-                cut = 80  # Tidak ada spasi, potong paksa
-            pdf.multi_cell(0, 5, line[:cut].rstrip() or " ")
-            line = line[cut:].lstrip()
-
         if line.strip():
-            pdf.multi_cell(0, 5, line)
+            # Paragraph akan menangani pembungkusan teks secara otomatis
+            flowables.append(Paragraph(line, style))
         else:
-            pdf.ln(3)
-
-    return bytes(pdf.output())
+            flowables.append(Spacer(1, 6))
+    doc.build(flowables)
+    return pdf_buffer.getvalue()
 
 
 # ============== SIDEBAR ==============
