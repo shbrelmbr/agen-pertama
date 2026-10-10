@@ -57,44 +57,6 @@ def extract_image_info(file_bytes, filename):
     except Exception as e:
         return f"[GAMBAR: {filename} — tidak dapat dibaca: {e}]"
 
-
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import mm
-
-def make_pdf(text):
-    pdf_buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        pdf_buffer,
-        pagesize=A4,
-        leftMargin=15*mm,
-        rightMargin=15*mm,
-        topMargin=15*mm,
-        bottomMargin=15*mm,
-    )
-    styles = getSampleStyleSheet()
-    style = styles["Normal"]
-    style.fontSize = 10
-    style.leading = 14
-    style.wordWrap = 'LTR'  # Memaksa pemenggalan kata yang panjang
-
-    # Bersihkan markdown sederhana
-    clean = text.replace("**", "").replace("##", "").replace("#", "").replace("*", "-")
-    # Pastikan kompatibel dengan font standar PDF
-    clean = clean.encode("latin-1", "replace").decode("latin-1")
-
-    flowables = []
-    for line in clean.split("\n"):
-        if line.strip():
-            # Paragraph akan menangani pembungkusan teks secara otomatis
-            flowables.append(Paragraph(line, style))
-        else:
-            flowables.append(Spacer(1, 6))
-    doc.build(flowables)
-    return pdf_buffer.getvalue()
-
-
 # ============== SIDEBAR ==============
 with st.sidebar:
     st.header("👥 Tim Agen")
@@ -154,28 +116,13 @@ if st.session_state.selected_idx is not None:
     st.markdown(item["hasil"])
     st.divider()
 
-    col_md, col_pdf = st.columns(2)
-    with col_md:
         st.download_button(
-            "💾 Export Markdown (.md)",
-            data=item["hasil"],
-            file_name=f"hasil_{idx+1}.md",
-            mime="text/markdown",
-            use_container_width=True,
-        )
-    with col_pdf:
-        try:
-            pdf_bytes = make_pdf(item["hasil"])
-            st.download_button(
-                "💾 Export PDF (.pdf)",
-                data=pdf_bytes,
-                file_name=f"hasil_{idx+1}.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-            )
-        except Exception as e:
-            st.button("💾 Export PDF (error)", disabled=True, use_container_width=True)
-            st.caption(f"PDF error: {e}")
+        "💾 Export Markdown (.md)",
+        data=item["hasil"],
+        file_name=f"hasil_{idx+1}.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
 
 else:
     st.subheader("💬 Ajukan Pertanyaan Baru")

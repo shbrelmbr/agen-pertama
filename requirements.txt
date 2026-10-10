@@ -1,8 +1,5 @@
-# v2 - rebuild untuk reportlab
 crewai[google-genai]
 streamlit
 pypdf
 python-docx
-fpdf2
 pillow
-reportlab
