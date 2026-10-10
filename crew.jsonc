@@ -1,0 +1,23 @@
+{
+  "name": "agen_pertama",
+  "agents": [
+    "asisten_riset_pribadi",
+    "penulis",
+    "konselor_hidup_sosial",
+    "penasihat_finance",
+    "konsultan_pekerjaan",
+    "challenger"
+  ],
+  "tasks": [
+    {
+      "name": "selesaikan_permintaan_pengguna",
+      "description": "Selesaikan permintaan pengguna berikut: {topik}. Analisis topik ini, pilih agen spesialis yang paling tepat, dan berikan jawaban yang komprehensif. Jika topik mencakup beberapa aspek, koordinasikan beberapa agen dan gabungkan hasilnya. Untuk topik yang memerlukan analisis mendalam, libatkan Sang Penantang untuk menguji hasil sebelum finalisasi.",
+      "expected_output": "Jawaban lengkap, terstruktur, dan teruji yang menjawab permintaan pengguna secara menyeluruh."
+    }
+  ],
+  "process": "hierarchical",
+  "manager_agent": "chief_of_staff",
+  "verbose": true,
+  "memory": false,
+  "inputs": {}
+}

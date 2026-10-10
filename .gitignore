@@ -1,0 +1,31 @@
+# Environment dan secrets - JANGAN pernah di-upload!
+.env
+.env.*
+!.env.example
+
+# Cache dan build
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Log
+*.log
+
+# Riwayat CrewAI
+history.json

@@ -1,0 +1,26 @@
+[project]
+name = "agen_pertama"
+version = "0.1.0"
+description = "agen_pertama using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[google-genai,tools]>=1.15.26,<2.0.0",
+    "fpdf2>=2.8.9",
+    "pillow>=12.3.0",
+    "pypdf>=6.20.0",
+    "python-docx>=1.2.0",
+    "streamlit>=1.65.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["agents", "crew.jsonc", "tools", "knowledge", "skills"]
+
+[tool.crewai]
+type = "crew"
+definition = "crew.jsonc"
+project_id = "b010f303-393d-447e-ac1c-2f7d36e36f03"
