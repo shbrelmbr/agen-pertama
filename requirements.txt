@@ -1,0 +1,6 @@
+crewai[google-genai]
+streamlit
+pypdf
+python-docx
+fpdf2
+pillow
