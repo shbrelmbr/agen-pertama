@@ -116,7 +116,7 @@ if st.session_state.selected_idx is not None:
     st.markdown(item["hasil"])
     st.divider()
 
-        st.download_button(
+    st.download_button(
         "💾 Export Markdown (.md)",
         data=item["hasil"],
         file_name=f"hasil_{idx+1}.md",
