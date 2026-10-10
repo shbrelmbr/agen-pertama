@@ -60,12 +60,28 @@ def extract_image_info(file_bytes, filename):
 
 def make_pdf(text):
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_margins(15, 15, 15)
     pdf.add_page()
-    pdf.set_font("Helvetica", size=11)
+    pdf.set_font("Helvetica", size=10)
+
     clean = text.replace("**", "").replace("##", "").replace("#", "").replace("*", "-")
+    clean = clean.encode("latin-1", "replace").decode("latin-1")
+
     for line in clean.split("\n"):
-        line = line.encode("latin-1", "replace").decode("latin-1")
-        pdf.multi_cell(0, 6, line[:1500])
+        # Pecah baris panjang di batas kata
+        while len(line) > 80:
+            cut = line.rfind(" ", 0, 80)
+            if cut < 20:
+                cut = 80  # Tidak ada spasi, potong paksa
+            pdf.multi_cell(0, 5, line[:cut].rstrip() or " ")
+            line = line[cut:].lstrip()
+
+        if line.strip():
+            pdf.multi_cell(0, 5, line)
+        else:
+            pdf.ln(3)
+
     return bytes(pdf.output())
 
 
