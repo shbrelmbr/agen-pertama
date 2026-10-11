@@ -3,5 +3,5 @@ streamlit
 pypdf
 python-docx
 pillow
-streamlit-authenticator
+streamlit-authenticator==0.3.3
 pyyaml

@@ -14,13 +14,10 @@ st.set_page_config(page_title="AI Agent Saya", page_icon="🤖", layout="wide")
 # --- KONFIGURASI AUTENTIKASI ---
 import os
 
-# Deteksi: apakah file auth_config.yaml ada? (lokal)
-# Jika tidak, baca dari Secrets (Streamlit Cloud)
 if os.path.exists("auth_config.yaml"):
     # Mode lokal: baca dari file
     with open("auth_config.yaml") as file:
         config = yaml.load(file, Loader=SafeLoader)
-
     # Hash password jika masih plain text
     if config["credentials"]["usernames"]:
         for user in config["credentials"]["usernames"].values():
@@ -30,9 +27,10 @@ if os.path.exists("auth_config.yaml"):
             yaml.dump(config, file, default_flow_style=False)
 else:
     # Mode cloud: baca dari Streamlit Secrets
+    # Perhatikan penggunaan .to_dict() untuk mengubah Secrets menjadi dictionary
     config = {
         "credentials": {
-            "usernames": dict(st.secrets["credentials"]["usernames"])
+            "usernames": st.secrets["credentials"]["usernames"].to_dict()
         },
         "cookie": {
             "expiry_days": st.secrets["cookie"]["expiry_days"],
